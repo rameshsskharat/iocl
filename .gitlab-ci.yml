@@ -1,0 +1,25 @@
+stages:
+  - deploy
+
+variables:
+  KUBE_NAMESPACE: trainer
+
+deploy-httpd:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  tags:
+    - k8s   # must match your runner
+  script:
+    # Setup kubeconfig
+    # - echo "$KUBE_CONFIG" > kubeconfig
+    # - export KUBECONFIG=$PWD/kubeconfig
+    - export KUBECONFIG=$KUBE_CONFIG
+    # Create deployment using httpd image
+    - kubectl create deployment httpd-app --image=httpd -n $KUBE_NAMESPACE || true
+
+    # Expose service
+    - kubectl expose deployment httpd-app --type=NodePort --port=80 -n $KUBE_NAMESPACE || true
+
+    # Verify
+    - kubectl get pods -n $KUBE_NAMESPACE
+    - kubectl get svc -n $KUBE_NAMESPACE
